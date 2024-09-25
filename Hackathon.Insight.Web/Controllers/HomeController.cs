@@ -85,6 +85,9 @@ public class HomeController : Controller
             ForecastValue = 290 // Hard code forecasted value
         };
 
+        // Set forecast message to type
+        ViewBag.ForecastMessage = LoremIpsum();
+
         return View(model);
     }
 
@@ -114,14 +117,23 @@ public class HomeController : Controller
         ViewBag.HistoricalData = JsonConvert.SerializeObject(result);
 
         // Displaying the grouped data in the console (to check results)
-        foreach (var quarterGroup in result)
+        /*foreach (var quarterGroup in result)
         {
             Console.WriteLine($"Year: {quarterGroup.Year}, Quarter: {quarterGroup.Quarter}");
             foreach (var monthGroup in quarterGroup.Months)
             {
                 Console.WriteLine($"\tMonth: {monthGroup.Month}, Total Tickets: {monthGroup.TotalTickets}");
             }
-        }
+        }*/
+    }
+
+    private string LoremIpsum()
+    {
+        return @"Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's 
+standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. 
+It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. 
+It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with 
+desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.";
     }
 
     public IActionResult Privacy()
