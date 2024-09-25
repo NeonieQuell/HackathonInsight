@@ -1,0 +1,132 @@
+﻿@model ForecastViewModel
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<h1>Dashboard</h1>
+
+<div id="content">
+    <div id="charts-forecast" class="d-flex justify-content-center">
+        <canvas id="forecast" width="500" height="300"></canvas>
+    </div>
+    <div id="charts-historical-data" class="d-flex flex-wrap justify-content-between mt-4">
+        @* Canvas elements will be generated here dynamically *@
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        /* * * * * * * * * * * * * * * *
+         * Charts for Historical Data  *
+         * * * * * * * * * * * * * * * */
+        const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+        // Define colors for each quarter
+        const colors = [
+            { background: 'rgba(255, 99, 132, 0.2)', border: 'rgba(255, 99, 132, 1)' },  // Red for Q1
+            { background: 'rgba(54, 162, 235, 0.2)', border: 'rgba(54, 162, 235, 1)' },   // Blue for Q2
+            { background: 'rgba(75, 192, 192, 0.2)', border: 'rgba(75, 192, 192, 1)' },   // Green for Q3
+            { background: 'rgba(255, 206, 86, 0.2)', border: 'rgba(255, 206, 86, 1)' }    // Yellow for Q4
+        ];
+
+        // Deserialize ViewBag.ChartData
+        const historicalData = @Html.Raw(Newtonsoft.Json.JsonConvert.DeserializeObject(ViewBag.HistoricalData))
+
+        const chartsContainer = document.querySelector('#charts-historical-data');
+
+        historicalData.forEach(function (quarter, index) {
+            // Create a new canvas for each quarter
+            const canvas = document.createElement('canvas');
+            canvas.id = 'chart-quarter-' + quarter.Quarter;
+            canvas.width = 400;
+            canvas.height = 200;
+            chartsContainer.appendChild(canvas);
+
+            // Prepare the labels (months) and the data (tickets)
+            const labels = quarter.Months.map(m => monthNames[m.Month - 1]);
+            const data = quarter.Months.map(m => m.TotalTickets);
+
+            // Get colors for the current quarter (wrap around if more than 4 quarters)
+            const color = colors[index % colors.length]; 
+
+            // Create the chart
+            const ctx = document.getElementById('chart-quarter-' + quarter.Quarter).getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',  // Change the chart type to 'bar', 'pie', etc.
+                data: {
+                    labels: labels,  // X-axis labels (month names)
+                    datasets: [{
+                        label: `Issues Per Month`,
+                        data: data,  // Y-axis data (total tickets)
+                        backgroundColor: color.background,
+                        borderColor: color.border,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: false,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            onClick: (e) => e.stopPropagation() // Prevent click events on legend
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            min: 0,
+                            max: 500,
+                            title: {
+                                display: true,
+                                text: 'Number of Tickets'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        /* * * * * * * * * * * * * * * *
+         *  Charts for Forecast Value  *
+         * * * * * * * * * * * * * * * */
+        const forecastValue = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(Model.ForecastValue));
+        // Create forecast chart
+        const ctxForecast = document.getElementById('forecast').getContext('2d');
+        const forecastChart = new Chart(ctxForecast, {
+            type: 'bar', // Choose the chart type
+            data: {
+                labels: ['October'], // The forecast's month
+                datasets: [{
+                    label: 'Forecast',
+                    data: [forecastValue], // Single forecast value
+                    backgroundColor: 'rgba(255, 206, 86, 0.6)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 2,
+                    barThickness: 100,
+                    fill: false
+                }]
+            },
+            options: {
+                responsive: false,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        onClick: (e) => e.stopPropagation() // Prevent click events on legend
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        min: 0,
+                        max: 500,
+                        title: {
+                            display: true,
+                            text: 'Number of Tickets'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+}
